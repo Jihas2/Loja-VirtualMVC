@@ -1,5 +1,6 @@
 package view;
 
+import controller.CarrinhoController;
 import controller.PecaRoupaController;
 import model.PecaRoupa;
 import javax.swing.*;
@@ -11,12 +12,16 @@ import javax.imageio.ImageIO;
 
 public class VitrineView extends JFrame {
     private PecaRoupaController controller;
+    private CarrinhoController carrinhoController;
     private JPanel painelPecas;
     private JButton btnVoltar;
     private JButton btnAtualizar;
+    private JButton btnCarrinho;
+    private JLabel lblCarrinhoInfo;
 
     public VitrineView(PecaRoupaController controller) {
         this.controller = controller;
+        this.carrinhoController = CarrinhoController.getInstance();
         inicializarComponentes();
         carregarPecas();
     }
@@ -40,6 +45,20 @@ public class VitrineView extends JFrame {
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         painelBotoes.setBackground(new Color(102, 126, 234));
 
+        lblCarrinhoInfo = new JLabel("Carrinho: 0 itens");
+        lblCarrinhoInfo.setFont(new Font("Arial", Font.BOLD, 13));
+        lblCarrinhoInfo.setForeground(Color.WHITE);
+        lblCarrinhoInfo.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 15));
+
+        btnCarrinho = new JButton("Ver Carrinho");
+        btnCarrinho.setPreferredSize(new Dimension(140, 35));
+        btnCarrinho.setBackground(new Color(255, 193, 7));
+        btnCarrinho.setForeground(Color.BLACK);
+        btnCarrinho.setFont(new Font("Arial", Font.BOLD, 12));
+        btnCarrinho.setFocusPainted(false);
+        btnCarrinho.setBorderPainted(false);
+        btnCarrinho.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
         btnAtualizar = new JButton("Atualizar");
         btnAtualizar.setPreferredSize(new Dimension(120, 35));
         btnAtualizar.setBackground(Color.WHITE);
@@ -58,6 +77,8 @@ public class VitrineView extends JFrame {
         btnVoltar.setBorderPainted(false);
         btnVoltar.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
+        painelBotoes.add(lblCarrinhoInfo);
+        painelBotoes.add(btnCarrinho);
         painelBotoes.add(btnAtualizar);
         painelBotoes.add(btnVoltar);
         painelSuperior.add(painelBotoes, BorderLayout.EAST);
@@ -85,6 +106,7 @@ public class VitrineView extends JFrame {
             carregarPecas();
             JOptionPane.showMessageDialog(this, "Vitrine atualizada!", "Info", JOptionPane.INFORMATION_MESSAGE);
         });
+        btnCarrinho.addActionListener(e -> abrirCarrinho());
     }
 
     private void carregarPecas() {
@@ -102,12 +124,20 @@ public class VitrineView extends JFrame {
             }
         }
 
+        atualizarInfoCarrinho();
         painelPecas.revalidate();
         painelPecas.repaint();
     }
 
     public void atualizarVitrine() {
         carregarPecas();
+    }
+
+    private void atualizarInfoCarrinho() {
+        int quantidade = carrinhoController.getQuantidadeTotal();
+        lblCarrinhoInfo.setText(String.format("Carrinho: %d %s",
+                quantidade,
+                quantidade == 1 ? "item" : "itens"));
     }
 
     private JPanel criarCardPeca(PecaRoupa peca) {
@@ -147,9 +177,9 @@ public class VitrineView extends JFrame {
                 lblImagem.setForeground(Color.GRAY);
             }
         } else {
-            String icone = obterIconePorTipo(peca.getTipo());
-            lblImagem.setText("<html><div style='text-align: center; font-size: 48px;'>" + icone +
-                    "<br><span style='font-size: 14px; color: gray;'>Sem imagem</span></div></html>");
+            lblImagem.setText("Sem imagem");
+            lblImagem.setFont(new Font("Arial", Font.PLAIN, 14));
+            lblImagem.setForeground(Color.GRAY);
         }
 
         painelImagem.add(lblImagem, BorderLayout.CENTER);
@@ -167,7 +197,7 @@ public class VitrineView extends JFrame {
 
         painelInfo.add(Box.createRigidArea(new Dimension(0, 5)));
 
-        JLabel lblDetalhes = new JLabel(peca.getTipo() + " • Tamanho: " + peca.getTamanho());
+        JLabel lblDetalhes = new JLabel(peca.getTipo() + " - Tamanho: " + peca.getTamanho());
         lblDetalhes.setFont(new Font("Arial", Font.PLAIN, 13));
         lblDetalhes.setForeground(new Color(100, 100, 100));
         lblDetalhes.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -210,34 +240,32 @@ public class VitrineView extends JFrame {
         painelInfo.add(painelPreco);
         painelInfo.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        JButton btnComprar = new JButton("COMPRAR AGORA");
-        btnComprar.setAlignmentX(Component.LEFT_ALIGNMENT);
-        btnComprar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
-        btnComprar.setPreferredSize(new Dimension(300, 40));
-        btnComprar.setBackground(new Color(76, 175, 80));
-        btnComprar.setForeground(Color.WHITE);
-        btnComprar.setFont(new Font("Arial", Font.BOLD, 14));
-        btnComprar.setFocusPainted(false);
-        btnComprar.setBorderPainted(false);
-        btnComprar.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        JButton btnAdicionarCarrinho = new JButton("ADICIONAR AO CARRINHO");
+        btnAdicionarCarrinho.setAlignmentX(Component.LEFT_ALIGNMENT);
+        btnAdicionarCarrinho.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        btnAdicionarCarrinho.setPreferredSize(new Dimension(300, 40));
+        btnAdicionarCarrinho.setBackground(new Color(76, 175, 80));
+        btnAdicionarCarrinho.setForeground(Color.WHITE);
+        btnAdicionarCarrinho.setFont(new Font("Arial", Font.BOLD, 14));
+        btnAdicionarCarrinho.setFocusPainted(false);
+        btnAdicionarCarrinho.setBorderPainted(false);
+        btnAdicionarCarrinho.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        btnComprar.addActionListener(e -> abrirPagamento(peca));
+        btnAdicionarCarrinho.addActionListener(e -> adicionarAoCarrinho(peca));
 
-        // Efeito hover no botão
-        btnComprar.addMouseListener(new java.awt.event.MouseAdapter() {
+        btnAdicionarCarrinho.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
-                btnComprar.setBackground(new Color(67, 160, 71));
+                btnAdicionarCarrinho.setBackground(new Color(67, 160, 71));
             }
             public void mouseExited(java.awt.event.MouseEvent evt) {
-                btnComprar.setBackground(new Color(76, 175, 80));
+                btnAdicionarCarrinho.setBackground(new Color(76, 175, 80));
             }
         });
 
-        painelInfo.add(btnComprar);
+        painelInfo.add(btnAdicionarCarrinho);
 
         card.add(painelInfo, BorderLayout.CENTER);
 
-        // Efeito hover no card
         card.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 card.setBorder(BorderFactory.createCompoundBorder(
@@ -257,31 +285,27 @@ public class VitrineView extends JFrame {
         return card;
     }
 
-    private void abrirPagamento(PecaRoupa peca) {
-        PagamentoView pagamentoView = new PagamentoView(peca, this, controller);
-        pagamentoView.setVisible(true);
-        this.setVisible(false);
+    private void adicionarAoCarrinho(PecaRoupa peca) {
+        carrinhoController.adicionarPeca(peca);
+        atualizarInfoCarrinho();
+        JOptionPane.showMessageDialog(this,
+                peca.getNome() + " adicionado ao carrinho!",
+                "Sucesso",
+                JOptionPane.INFORMATION_MESSAGE);
     }
 
-    private String obterIconePorTipo(String tipo) {
-        switch (tipo.toLowerCase()) {
-            case "camiseta":
-            case "camisa":
-            case "blusa":
-                return "";
-            case "calça":
-            case "shorts":
-                return "";
-            case "vestido":
-                return "";
-            case "saia":
-                return "";
-            case "jaqueta":
-            case "casaco":
-                return "";
-            default:
-                return "";
+    private void abrirCarrinho() {
+        if (carrinhoController.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                    "Seu carrinho está vazio!",
+                    "Carrinho Vazio",
+                    JOptionPane.INFORMATION_MESSAGE);
+            return;
         }
+
+        CarrinhoView carrinhoView = new CarrinhoView(controller, this);
+        carrinhoView.setVisible(true);
+        this.setVisible(false);
     }
 
     private void voltarParaLista() {
