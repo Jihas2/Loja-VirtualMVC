@@ -1,9 +1,13 @@
 package view;
 
+import java.util.Base64;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import controller.PecaRoupaController;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.math.BigDecimal;
 
 public class CadastroView extends JFrame {
     private PecaRoupaController controller;
@@ -233,38 +237,50 @@ public class CadastroView extends JFrame {
     }
 
     private void salvarPeca() {
-        try {
-            String nome = txtNome.getText().trim();
-            String tipo = (String) cmbTipo.getSelectedItem();
-            String tamanho = (String) cmbTamanho.getSelectedItem();
-            String cor = txtCor.getText().trim();
-            String preco = txtPreco.getText().trim();
-            String descricao = txtDescricao.getText().trim();
-            String caminhoImagem = txtCaminhoImagem.getText().trim();
+    try {
+        String nome = txtNome.getText().trim();
+        String tipo = (String) cmbTipo.getSelectedItem();
+        String tamanho = (String) cmbTamanho.getSelectedItem();
+        String cor = txtCor.getText().trim();
+        String precoStr = txtPreco.getText().trim();
+        BigDecimal preco = new BigDecimal(precoStr);
+        String descricao = txtDescricao.getText().trim();
+        String imagemBase64 = converterImagemParaBase64(txtCaminhoImagem.getText()); //agora salva em base64
 
-            if (tipo.equals("Selecione")) {
-                tipo = "";
-            }
-            if (tamanho.equals("Selecione")) {
-                tamanho = "";
-            }
-
-            controller.adicionarPeca(nome, tipo, tamanho, cor, preco, descricao, caminhoImagem);
-
-            JOptionPane.showMessageDialog(this,
-                    "Peça cadastrada com sucesso!",
-                    "Sucesso",
-                    JOptionPane.INFORMATION_MESSAGE);
-
-            limparCampos();
-
-        } catch (IllegalArgumentException ex) {
-            JOptionPane.showMessageDialog(this,
-                    ex.getMessage(),
-                    "Erro",
-                    JOptionPane.ERROR_MESSAGE);
+        if (tipo.equals("Selecione")) {
+            tipo = "";
         }
+        if (tamanho.equals("Selecione")) {
+            tamanho = "";
+        }
+
+        controller.adicionarPeca(nome, tipo, tamanho, cor, preco, descricao, imagemBase64);
+
+        JOptionPane.showMessageDialog(this,
+                "Peça cadastrada com sucesso!",
+                "Sucesso",
+                JOptionPane.INFORMATION_MESSAGE);
+
+        limparCampos();
+
+    } catch (IllegalArgumentException ex) {
+        JOptionPane.showMessageDialog(this,
+                ex.getMessage(),
+                "Erro",
+                JOptionPane.ERROR_MESSAGE);
     }
+}
+
+private String converterImagemParaBase64(String caminhoImagem) {
+    try {
+        byte[] bytes = Files.readAllBytes(Path.of(caminhoImagem));
+        return Base64.getEncoder().encodeToString(bytes);
+    } catch (Exception e) {
+        e.printStackTrace();
+        return null;
+    }
+}
+
 
     private void limparCampos() {
         txtNome.setText("");

@@ -1,0 +1,7 @@
+{
+    "java.project.referencedLibraries": [
+        "lib/mysql-connector-j-8.1.0.jar"
+    ],
+    "files.encoding": "utf8",
+"files.autoGuessEncoding": false
+}

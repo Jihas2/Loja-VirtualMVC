@@ -1,14 +1,12 @@
 package view;
 
+import java.util.Base64;
 import controller.CarrinhoController;
 import controller.PecaRoupaController;
 import model.PecaRoupa;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
 import java.util.List;
-import javax.imageio.ImageIO;
 
 public class VitrineView extends JFrame {
     private PecaRoupaController controller;
@@ -109,6 +107,16 @@ public class VitrineView extends JFrame {
         btnCarrinho.addActionListener(e -> abrirCarrinho());
     }
 
+    private ImageIcon base64ParaImageIcon(String base64) {
+    try {
+        byte[] bytes = Base64.getDecoder().decode(base64);
+        return new ImageIcon(bytes);
+    } catch (Exception e) {
+        e.printStackTrace();
+        return null;
+    }
+    }
+
     private void carregarPecas() {
         painelPecas.removeAll();
         List<PecaRoupa> pecas = controller.listarPecas();
@@ -159,28 +167,32 @@ public class VitrineView extends JFrame {
         JLabel lblImagem = new JLabel();
         lblImagem.setHorizontalAlignment(SwingConstants.CENTER);
 
-        if (peca.getCaminhoImagem() != null && !peca.getCaminhoImagem().isEmpty()) {
-            try {
-                File imgFile = new File(peca.getCaminhoImagem());
-                if (imgFile.exists()) {
-                    BufferedImage img = ImageIO.read(imgFile);
-                    Image scaledImg = img.getScaledInstance(300, 240, Image.SCALE_SMOOTH);
-                    lblImagem.setIcon(new ImageIcon(scaledImg));
-                } else {
-                    lblImagem.setText("Imagem não encontrada");
-                    lblImagem.setFont(new Font("Arial", Font.PLAIN, 14));
-                    lblImagem.setForeground(Color.GRAY);
-                }
-            } catch (Exception e) {
-                lblImagem.setText("Erro ao carregar imagem");
-                lblImagem.setFont(new Font("Arial", Font.PLAIN, 14));
-                lblImagem.setForeground(Color.GRAY);
-            }
+        if (peca.getImagemBase64() != null && !peca.getImagemBase64().isEmpty()) {
+        try {
+        ImageIcon icon = base64ParaImageIcon(peca.getImagemBase64());
+
+        if (icon != null) {
+            // Redimensiona
+            Image img = icon.getImage().getScaledInstance(300, 240, Image.SCALE_SMOOTH);
+            lblImagem.setIcon(new ImageIcon(img));
         } else {
-            lblImagem.setText("Sem imagem");
+            lblImagem.setText("Erro ao carregar imagem");
             lblImagem.setFont(new Font("Arial", Font.PLAIN, 14));
             lblImagem.setForeground(Color.GRAY);
         }
+
+    } catch (Exception e) {
+        lblImagem.setText("Erro ao processar imagem");
+        lblImagem.setFont(new Font("Arial", Font.PLAIN, 14));
+        lblImagem.setForeground(Color.GRAY);
+    }
+
+    } else {
+        lblImagem.setText("Sem imagem");
+        lblImagem.setFont(new Font("Arial", Font.PLAIN, 14));
+        lblImagem.setForeground(Color.GRAY);
+    }
+
 
         painelImagem.add(lblImagem, BorderLayout.CENTER);
         card.add(painelImagem, BorderLayout.NORTH);

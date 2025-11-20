@@ -5,6 +5,7 @@ import model.PecaRoupa;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.math.BigDecimal;
 
 public class EdicaoView extends JFrame {
     private PecaRoupaController controller;
@@ -236,7 +237,7 @@ public class EdicaoView extends JFrame {
         txtCor.setText(pecaEditando.getCor());
         txtPreco.setText(pecaEditando.getPreco().toString());
         txtDescricao.setText(pecaEditando.getDescricao() != null ? pecaEditando.getDescricao() : "");
-        txtCaminhoImagem.setText(pecaEditando.getCaminhoImagem() != null ? pecaEditando.getCaminhoImagem() : "");
+        txtCaminhoImagem.setText(pecaEditando.getImagemBase64() != null ? pecaEditando.getImagemBase64() : "");
     }
 
     private void salvarAlteracoes() {
@@ -245,7 +246,8 @@ public class EdicaoView extends JFrame {
             String tipo = (String) cmbTipo.getSelectedItem();
             String tamanho = (String) cmbTamanho.getSelectedItem();
             String cor = txtCor.getText().trim();
-            String preco = txtPreco.getText().trim();
+            String precoStr = txtPreco.getText().trim();
+            BigDecimal preco = new BigDecimal(precoStr); //converte em decimal
             String descricao = txtDescricao.getText().trim();
             String caminhoImagem = txtCaminhoImagem.getText().trim();
 

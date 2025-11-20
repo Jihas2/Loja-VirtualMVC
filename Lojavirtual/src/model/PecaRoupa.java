@@ -11,19 +11,32 @@ public class PecaRoupa {
     private String cor;
     private BigDecimal preco;
     private String descricao;
-    private String caminhoImagem;
+    private String imagemBase64;
 
-    public PecaRoupa() {
-        this.preco = BigDecimal.ZERO;
-    }
 
-    public PecaRoupa(String nome, String tipo, String tamanho, String cor, BigDecimal preco) {
-        this.nome = nome;
-        this.tipo = tipo;
-        this.tamanho = tamanho;
-        this.cor = cor;
-        this.preco = preco != null ? preco : BigDecimal.ZERO;
-    }
+   public PecaRoupa(int id, String nome, String tipo, String tamanho,
+                 String cor, BigDecimal preco, String descricao, String imagemBase64) {
+    this.id = id;
+    this.nome = nome;
+    this.tipo = tipo;
+    this.tamanho = tamanho;
+    this.cor = cor;
+    this.preco = preco != null ? preco : BigDecimal.ZERO;
+    this.descricao = descricao;
+    this.imagemBase64 = imagemBase64;
+}
+
+public PecaRoupa(String nome, String tipo, String tamanho,
+                 String cor, BigDecimal preco, String descricao, String imagemBase64) {
+    this.nome = nome;
+    this.tipo = tipo;
+    this.tamanho = tamanho;
+    this.cor = cor;
+    this.preco = preco != null ? preco : BigDecimal.ZERO;
+    this.descricao = descricao;
+    this.imagemBase64 = imagemBase64;
+}
+
 
     public int getId() {
         return id;
@@ -81,13 +94,14 @@ public class PecaRoupa {
         this.descricao = descricao;
     }
 
-    public String getCaminhoImagem() {
-        return caminhoImagem;
+    public String getImagemBase64() { 
+        return imagemBase64; 
     }
 
-    public void setCaminhoImagem(String caminhoImagem) {
-        this.caminhoImagem = caminhoImagem;
+    public void setImagemBase64(String imagemBase64) { 
+    this.imagemBase64 = imagemBase64; 
     }
+
 
     public boolean isValida() {
         return nome != null && !nome.trim().isEmpty() &&
