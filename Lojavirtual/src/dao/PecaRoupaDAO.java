@@ -3,6 +3,7 @@ package dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,8 +13,8 @@ import model.PecaRoupa;
 public class PecaRoupaDAO {
      // CREATE
     public boolean adicionar(PecaRoupa peca) {
-        String sql = "INSERT INTO Roupas (nome, tipo, tamanho, cor, preco, descricao, caminhoImagem) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Roupas (nome, tipo, tamanho, cor, preco, descricao, caminhoImagem, estoque) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = new Conexao().conectar();
 
@@ -25,8 +26,9 @@ public class PecaRoupaDAO {
             stmt.setString(4, peca.getCor());
             stmt.setBigDecimal(5, peca.getPreco());
             stmt.setString(6, peca.getDescricao());
-            stmt.setString(7, peca.getImagemBase64());
-
+            stmt.setString(7, peca.getCaminhoImagem());
+            stmt.setInt(8, peca.getEstoque());
+            
             stmt.executeUpdate();
             return true;
 
@@ -55,7 +57,8 @@ public class PecaRoupaDAO {
                         rs.getString("cor"),
                         rs.getBigDecimal("preco"),
                         rs.getString("descricao"),
-                        rs.getString("caminhoImagem")
+                        rs.getString("caminhoImagem"),
+                        rs.getInt("estoque")
                 );
                 lista.add(p);
             }
@@ -86,7 +89,9 @@ public class PecaRoupaDAO {
                         rs.getString("cor"),
                         rs.getBigDecimal("preco"),
                         rs.getString("descricao"),
-                        rs.getString("caminhoImagem")
+                        rs.getString("caminhoImagem"),
+                        rs.getInt("estoque")
+
                 );
             }
         } catch (Exception e) {
@@ -98,12 +103,11 @@ public class PecaRoupaDAO {
 
     // UPDATE
     public boolean atualizar(PecaRoupa peca) {
-        String sql = "UPDATE Roupas SET nome=?, tipo=?, tamanho=?, cor=?, preco=?, descricao=?, caminhoImagem=? "
+        String sql = "UPDATE Roupas SET nome=?, tipo=?, tamanho=?, cor=?, preco=?, descricao=?, estoque=?, caminhoImagem=? "
                 + "WHERE idRoupa=?";
 
         try (Connection conn = new Conexao().conectar();
-
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, peca.getNome());
             stmt.setString(2, peca.getTipo());
@@ -111,8 +115,9 @@ public class PecaRoupaDAO {
             stmt.setString(4, peca.getCor());
             stmt.setBigDecimal(5, peca.getPreco());
             stmt.setString(6, peca.getDescricao());
-            stmt.setString(7, peca.getImagemBase64());
-            stmt.setInt(8, peca.getId());
+            stmt.setInt(7, peca.getEstoque());           // CORRETO
+            stmt.setString(8, peca.getCaminhoImagem());  // CORRETO
+            stmt.setInt(9, peca.getId());                // WHERE
 
             stmt.executeUpdate();
             return true;
@@ -122,6 +127,7 @@ public class PecaRoupaDAO {
             return false;
         }
     }
+
 
     // DELETE
     public boolean remover(int id) {
@@ -140,4 +146,22 @@ public class PecaRoupaDAO {
             return false;
         }
     }
+
+    public void atualizarEstoque(int id, int novoEstoque) {
+        String sql = "UPDATE Roupas SET estoque = ? WHERE idRoupa = ?";
+
+        try (Connection conn = new Conexao().conectar();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, novoEstoque);
+            stmt.setInt(2, id);
+            stmt.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
 }

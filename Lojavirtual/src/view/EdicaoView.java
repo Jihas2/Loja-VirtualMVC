@@ -18,6 +18,7 @@ public class EdicaoView extends JFrame {
     private JTextField txtCor;
     private JTextField txtPreco;
     private JTextArea txtDescricao;
+    private JTextField txtEstoque;
     private JTextField txtCaminhoImagem;
     private JButton btnEscolherImagem;
     private JButton btnSalvar;
@@ -120,8 +121,23 @@ public class EdicaoView extends JFrame {
         txtPreco.setPreferredSize(new Dimension(250, 30));
         painelForm.add(txtPreco, gbc);
 
+        // Estoque
+        gbc.gridx = 0; 
+        gbc.gridy = 5;        // Aumentar todos os próximos +1 (Descrição vira 6, Imagem vira 7...)
+        gbc.weightx = 0.3;
+
+        JLabel lblEstoque = new JLabel("Estoque:*");
+        lblEstoque.setFont(new Font("Arial", Font.BOLD, 12));
+        painelForm.add(lblEstoque, gbc);
+
+        gbc.gridx = 1;
+        gbc.weightx = 0.7;
+        txtEstoque = new JTextField(20);
+        txtEstoque.setPreferredSize(new Dimension(250, 30));
+        painelForm.add(txtEstoque, gbc);
+
         // Descrição
-        gbc.gridx = 0; gbc.gridy = 5; gbc.weightx = 0.3;
+        gbc.gridx = 0; gbc.gridy = 6; gbc.weightx = 0.3;
         gbc.anchor = GridBagConstraints.NORTH;
         JLabel lblDescricao = new JLabel("Descrição:");
         lblDescricao.setFont(new Font("Arial", Font.BOLD, 12));
@@ -137,7 +153,7 @@ public class EdicaoView extends JFrame {
         painelForm.add(scrollDescricao, gbc);
 
         // Imagem
-        gbc.gridx = 0; gbc.gridy = 6; gbc.weightx = 0.3;
+        gbc.gridx = 0; gbc.gridy = 7; gbc.weightx = 0.3;
         gbc.anchor = GridBagConstraints.NORTH;
         JLabel lblImagem = new JLabel("Imagem:");
         lblImagem.setFont(new Font("Arial", Font.BOLD, 12));
@@ -237,7 +253,7 @@ public class EdicaoView extends JFrame {
         txtCor.setText(pecaEditando.getCor());
         txtPreco.setText(pecaEditando.getPreco().toString());
         txtDescricao.setText(pecaEditando.getDescricao() != null ? pecaEditando.getDescricao() : "");
-        txtCaminhoImagem.setText(pecaEditando.getImagemBase64() != null ? pecaEditando.getImagemBase64() : "");
+        txtCaminhoImagem.setText(pecaEditando.getCaminhoImagem() != null ? pecaEditando.getCaminhoImagem() : "");
     }
 
     private void salvarAlteracoes() {
@@ -250,6 +266,7 @@ public class EdicaoView extends JFrame {
             BigDecimal preco = new BigDecimal(precoStr); //converte em decimal
             String descricao = txtDescricao.getText().trim();
             String caminhoImagem = txtCaminhoImagem.getText().trim();
+            int estoque = Integer.parseInt(txtEstoque.getText().trim());
 
             if (tipo.equals("Selecione")) {
                 tipo = "";
@@ -258,7 +275,7 @@ public class EdicaoView extends JFrame {
                 tamanho = "";
             }
 
-            controller.atualizarPeca(pecaEditando.getId(), nome, tipo, tamanho, cor, preco, descricao, caminhoImagem);
+            controller.atualizarPeca(pecaEditando.getId(), nome, tipo, tamanho, cor, preco, descricao, caminhoImagem, estoque);
 
             JOptionPane.showMessageDialog(this,
                     "Peça atualizada com sucesso!",

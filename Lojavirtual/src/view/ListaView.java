@@ -2,6 +2,8 @@ package view;
 
 import controller.PecaRoupaController;
 import model.PecaRoupa;
+import model.Usuario;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -15,9 +17,11 @@ public class ListaView extends JFrame {
     private JButton btnRemover;
     private JButton btnEditar;
     private JButton btnVitrine;
+    private Usuario usuarioLogado;
 
-    public ListaView(PecaRoupaController controller) {
+    public ListaView(PecaRoupaController controller, Usuario usuario) {
         this.controller = controller;
+        this.usuarioLogado = usuario;
         inicializarComponentes();
         carregarDados();
     }
@@ -39,7 +43,7 @@ public class ListaView extends JFrame {
         lblTitulo.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
         painelPrincipal.add(lblTitulo, BorderLayout.NORTH);
 
-        String[] colunas = {"ID", "Nome", "Tipo", "Tamanho", "Cor", "Preço (R$)"};
+        String[] colunas = {"ID", "Nome", "Tipo", "Tamanho", "Cor", "Preço (R$)", "Estoque"};
         modeloTabela = new DefaultTableModel(colunas, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -111,7 +115,10 @@ public class ListaView extends JFrame {
     }
 
     private void configurarEventos() {
-        btnVoltar.addActionListener(e -> voltarParaCadastro());
+        btnVoltar.addActionListener(e -> {
+                new TelaInicialView(usuarioLogado).setVisible(true);
+                dispose();
+        });
         btnRemover.addActionListener(e -> removerPeca());
         btnEditar.addActionListener(e -> editarPeca());
         btnVitrine.addActionListener(e -> abrirVitrine());
@@ -136,7 +143,8 @@ public class ListaView extends JFrame {
                     peca.getTipo(),
                     peca.getTamanho(),
                     peca.getCor(),
-                    String.format("%.2f", peca.getPreco())
+                    String.format("%.2f", peca.getPreco()),
+                    peca.getEstoque()
             };
             modeloTabela.addRow(linha);
         }
@@ -194,13 +202,13 @@ public class ListaView extends JFrame {
     }
 
     private void voltarParaCadastro() {
-        CadastroView cadastroView = new CadastroView(controller);
+        CadastroView cadastroView = new CadastroView(controller, usuarioLogado);
         cadastroView.setVisible(true);
         this.dispose();
     }
 
     private void abrirVitrine() {
-        VitrineView vitrineView = new VitrineView(controller);
+        VitrineView vitrineView = new VitrineView(controller, usuarioLogado);
         vitrineView.setVisible(true);
         this.dispose();
     }

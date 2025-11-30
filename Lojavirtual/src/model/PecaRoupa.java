@@ -11,11 +11,11 @@ public class PecaRoupa {
     private String cor;
     private BigDecimal preco;
     private String descricao;
-    private String imagemBase64;
-
+    private String caminhoImagem;
+    private int estoque;
 
    public PecaRoupa(int id, String nome, String tipo, String tamanho,
-                 String cor, BigDecimal preco, String descricao, String imagemBase64) {
+                 String cor, BigDecimal preco, String descricao, String caminhoImagem, int estoque) {
     this.id = id;
     this.nome = nome;
     this.tipo = tipo;
@@ -23,18 +23,20 @@ public class PecaRoupa {
     this.cor = cor;
     this.preco = preco != null ? preco : BigDecimal.ZERO;
     this.descricao = descricao;
-    this.imagemBase64 = imagemBase64;
+    this.caminhoImagem = caminhoImagem;
+    this.estoque = estoque;
 }
 
 public PecaRoupa(String nome, String tipo, String tamanho,
-                 String cor, BigDecimal preco, String descricao, String imagemBase64) {
+                 String cor, BigDecimal preco, String descricao, String caminhoImagem, int estoque) {
     this.nome = nome;
     this.tipo = tipo;
     this.tamanho = tamanho;
     this.cor = cor;
     this.preco = preco != null ? preco : BigDecimal.ZERO;
     this.descricao = descricao;
-    this.imagemBase64 = imagemBase64;
+    this.caminhoImagem = caminhoImagem;
+    this.estoque = estoque;
 }
 
 
@@ -94,14 +96,16 @@ public PecaRoupa(String nome, String tipo, String tamanho,
         this.descricao = descricao;
     }
 
-    public String getImagemBase64() { 
-        return imagemBase64; 
+    public String getCaminhoImagem() {
+        return caminhoImagem;
     }
 
-    public void setImagemBase64(String imagemBase64) { 
-    this.imagemBase64 = imagemBase64; 
+    public void setCaminhoImagem(String caminhoImagem) {
+        this.caminhoImagem = caminhoImagem;
     }
 
+    public int getEstoque() { return estoque; }
+    public void setEstoque(int estoque) { this.estoque = estoque; }
 
     public boolean isValida() {
         return nome != null && !nome.trim().isEmpty() &&

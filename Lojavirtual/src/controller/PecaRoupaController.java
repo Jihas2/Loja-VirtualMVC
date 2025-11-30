@@ -14,26 +14,26 @@ public class PecaRoupaController {
         this.dao = new PecaRoupaDAO();
     }
 
-    public boolean adicionarPeca(String nome, String tipo, String tamanho,
+    public void adicionarPeca(String nome, String tipo, String tamanho,
                                  String cor, BigDecimal preco,
-                                 String descricao, String caminhoImagem) {
+                                 String descricao, String caminhoImagem, int estoque) {
 
         PecaRoupa peca = new PecaRoupa(nome, tipo, tamanho, cor,
-                preco, descricao, caminhoImagem);
+                preco, descricao, caminhoImagem, estoque);
 
-        return dao.adicionar(peca);
+        new PecaRoupaDAO().adicionar(peca);
     }
 
     public List<PecaRoupa> listarPecas() {
-        return dao.listar();
+        return new PecaRoupaDAO().listar();
     }
 
     public boolean atualizarPeca(int id, String nome, String tipo, String tamanho,
                                  String cor, BigDecimal preco,
-                                 String descricao, String caminhoImagem) {
+                                 String descricao, String caminhoImagem, int estoque) {
 
         PecaRoupa peca = new PecaRoupa(id, nome, tipo, tamanho, cor,
-                preco, descricao, caminhoImagem);
+                preco, descricao, caminhoImagem, estoque);
 
         return dao.atualizar(peca);
     }

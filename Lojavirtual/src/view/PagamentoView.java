@@ -2,7 +2,11 @@ package view;
 
 import controller.CarrinhoController;
 import controller.PecaRoupaController;
+import controller.VendaController;
+import dao.PecaRoupaDAO;
 import model.ItemCarrinho;
+import model.PecaRoupa;
+
 import javax.swing.*;
 import java.awt.*;
 import java.math.BigDecimal;
@@ -187,7 +191,7 @@ public class PagamentoView extends JFrame {
     }
 
     private void configurarEventos() {
-        btnConfirmar.addActionListener(e -> confirmarCompra());
+        btnConfirmar.addActionListener(e -> finalizarCompra() );
         btnCancelar.addActionListener(e -> cancelar());
 
         addWindowListener(new java.awt.event.WindowAdapter() {
@@ -197,7 +201,7 @@ public class PagamentoView extends JFrame {
         });
     }
 
-    private void confirmarCompra() {
+    /*private void confirmarCompra() { //verificar continuidade de uso apos atualizacao com banco
         String formaPagamento = "";
         BigDecimal valorTotal = carrinhoController.getValorTotal();
         double valorFinal = valorTotal.doubleValue();
@@ -225,6 +229,16 @@ public class PagamentoView extends JFrame {
             mensagem.append(String.format("- %dx %s\n", item.getQuantidade(), item.getPeca().getNome()));
         }
 
+        for (ItemCarrinho item : carrinhoController.getItens()) {
+            PecaRoupa peca = item.getPeca();
+
+            int novoEstoque = peca.getEstoque() - item.getQuantidade();
+            peca.setEstoque(novoEstoque);
+
+            new PecaRoupaDAO().atualizarEstoque(peca.getId(), novoEstoque);
+        }
+
+
         mensagem.append(String.format("\nTotal de Itens: %d\n", carrinhoController.getQuantidadeTotal()));
         mensagem.append(String.format("Forma de Pagamento: %s\n", formaPagamento));
         mensagem.append(String.format("Valor Final: R$ %.2f\n\n", valorFinal));
@@ -238,7 +252,34 @@ public class PagamentoView extends JFrame {
         carrinhoController.limparCarrinho();
 
         voltarVitrine();
+    } // << verificar continuidade de uso /* */
+
+    private void finalizarCompra() {
+        BigDecimal total = carrinhoController.getValorTotal();
+        List<ItemCarrinho> itens = carrinhoController.getItens();
+
+        VendaController vendaController = new VendaController();
+
+        boolean sucesso = vendaController.finalizarVenda(itens, total);
+
+        if (sucesso) {
+            carrinhoController.limparCarrinho();   // 4️⃣ limpar carrinho
+
+            JOptionPane.showMessageDialog(this,
+                    "Compra realizada com sucesso!\nObrigado pela preferência!",
+                    "Sucesso",
+                    JOptionPane.INFORMATION_MESSAGE);
+
+            this.dispose();
+            //implementar voltar tela incial
+        } else {
+            JOptionPane.showMessageDialog(this,
+                    "Erro ao finalizar compra. Tente novamente.",
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+        }
     }
+
 
     private void cancelar() {
         int confirmacao = JOptionPane.showConfirmDialog(this,

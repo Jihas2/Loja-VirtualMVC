@@ -1,9 +1,8 @@
 package view;
 
-import java.util.Base64;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import controller.PecaRoupaController;
+import model.Usuario;
+
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
@@ -18,14 +17,17 @@ public class CadastroView extends JFrame {
     private JTextField txtCor;
     private JTextField txtPreco;
     private JTextArea txtDescricao;
+    private JTextField txtEstoque;
     private JTextField txtCaminhoImagem;
     private JButton btnEscolherImagem;
     private JButton btnSalvar;
     private JButton btnLimpar;
     private JButton btnVerLista;
+    private Usuario usuarioLogado;
 
-    public CadastroView(PecaRoupaController controller) {
+    public CadastroView(PecaRoupaController controller, Usuario usuario) {
         this.controller = controller;
+        this.usuarioLogado = usuario;
         inicializarComponentes();
     }
 
@@ -136,8 +138,20 @@ public class CadastroView extends JFrame {
         scrollDescricao.setPreferredSize(new Dimension(250, 80));
         painelForm.add(scrollDescricao, gbc);
 
-        // Imagem
+        // Estoque (NOVO CAMPO)
         gbc.gridx = 0; gbc.gridy = 6; gbc.weightx = 0.3;
+        gbc.anchor = GridBagConstraints.CENTER;
+        JLabel lblEstoque = new JLabel("Estoque:*");
+        lblEstoque.setFont(new Font("Arial", Font.BOLD, 12));
+        painelForm.add(lblEstoque, gbc);
+
+        gbc.gridx = 1; gbc.weightx = 0.7;
+        txtEstoque = new JTextField(20);
+        txtEstoque.setPreferredSize(new Dimension(250, 30));
+        painelForm.add(txtEstoque, gbc);
+
+        // Imagem
+        gbc.gridx = 0; gbc.gridy = 7; gbc.weightx = 0.3;
         gbc.anchor = GridBagConstraints.NORTH;
         JLabel lblImagem = new JLabel("Imagem:");
         lblImagem.setFont(new Font("Arial", Font.BOLD, 12));
@@ -163,6 +177,7 @@ public class CadastroView extends JFrame {
         painelImagem.add(txtCaminhoImagem, BorderLayout.CENTER);
         painelImagem.add(btnEscolherImagem, BorderLayout.EAST);
         painelForm.add(painelImagem, gbc);
+
 
         painelPrincipal.add(painelForm, BorderLayout.CENTER);
 
@@ -245,7 +260,8 @@ public class CadastroView extends JFrame {
         String precoStr = txtPreco.getText().trim();
         BigDecimal preco = new BigDecimal(precoStr);
         String descricao = txtDescricao.getText().trim();
-        String imagemBase64 = converterImagemParaBase64(txtCaminhoImagem.getText()); //agora salva em base64
+        String caminhoImagem = txtCaminhoImagem.getText().trim();
+        int estoque = Integer.parseInt(txtEstoque.getText().trim());
 
         if (tipo.equals("Selecione")) {
             tipo = "";
@@ -254,7 +270,7 @@ public class CadastroView extends JFrame {
             tamanho = "";
         }
 
-        controller.adicionarPeca(nome, tipo, tamanho, cor, preco, descricao, imagemBase64);
+        controller.adicionarPeca(nome, tipo, tamanho, cor, preco, descricao, caminhoImagem, estoque);
 
         JOptionPane.showMessageDialog(this,
                 "Peça cadastrada com sucesso!",
@@ -271,16 +287,6 @@ public class CadastroView extends JFrame {
     }
 }
 
-private String converterImagemParaBase64(String caminhoImagem) {
-    try {
-        byte[] bytes = Files.readAllBytes(Path.of(caminhoImagem));
-        return Base64.getEncoder().encodeToString(bytes);
-    } catch (Exception e) {
-        e.printStackTrace();
-        return null;
-    }
-}
-
 
     private void limparCampos() {
         txtNome.setText("");
@@ -291,10 +297,12 @@ private String converterImagemParaBase64(String caminhoImagem) {
         txtDescricao.setText("");
         txtCaminhoImagem.setText("");
         txtNome.requestFocus();
+        txtEstoque.setText("");
+
     }
 
     private void abrirListaView() {
-        ListaView listaView = new ListaView(controller);
+        ListaView listaView = new ListaView(controller, usuarioLogado);
         listaView.setVisible(true);
         this.dispose();
     }

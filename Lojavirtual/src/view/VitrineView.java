@@ -1,12 +1,16 @@
 package view;
 
-import java.util.Base64;
 import controller.CarrinhoController;
 import controller.PecaRoupaController;
 import model.PecaRoupa;
+import model.Usuario;
+
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.List;
+import javax.imageio.ImageIO;
 
 public class VitrineView extends JFrame {
     private PecaRoupaController controller;
@@ -16,32 +20,34 @@ public class VitrineView extends JFrame {
     private JButton btnAtualizar;
     private JButton btnCarrinho;
     private JLabel lblCarrinhoInfo;
+    private Usuario usuarioLogado;
 
-    public VitrineView(PecaRoupaController controller) {
+    public VitrineView(PecaRoupaController controller, Usuario usuario) {
         this.controller = controller;
+        this.usuarioLogado = usuario;
         this.carrinhoController = CarrinhoController.getInstance();
         inicializarComponentes();
         carregarPecas();
     }
 
     private void inicializarComponentes() {
-        setTitle("Vitrine de Peças - Exibição ao Público");
+        setTitle("Roupas a venda - Exibição ao Público");
         setSize(1200, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
         JPanel painelSuperior = new JPanel(new BorderLayout());
-        painelSuperior.setBackground(new Color(102, 126, 234));
+        painelSuperior.setBackground(new Color(30, 30, 33));
         painelSuperior.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        JLabel lblTitulo = new JLabel("VITRINE DE PEÇAS", SwingConstants.CENTER);
+        JLabel lblTitulo = new JLabel("Produtos em Catálogo", SwingConstants.CENTER);
         lblTitulo.setFont(new Font("Arial", Font.BOLD, 32));
-        lblTitulo.setForeground(Color.WHITE);
+        lblTitulo.setForeground(new Color(190, 0, 0));
         painelSuperior.add(lblTitulo, BorderLayout.CENTER);
 
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-        painelBotoes.setBackground(new Color(102, 126, 234));
+        painelBotoes.setBackground(new Color(30, 30, 33));
 
         lblCarrinhoInfo = new JLabel("Carrinho: 0 itens");
         lblCarrinhoInfo.setFont(new Font("Arial", Font.BOLD, 13));
@@ -60,7 +66,7 @@ public class VitrineView extends JFrame {
         btnAtualizar = new JButton("Atualizar");
         btnAtualizar.setPreferredSize(new Dimension(120, 35));
         btnAtualizar.setBackground(Color.WHITE);
-        btnAtualizar.setForeground(new Color(102, 126, 234));
+        btnAtualizar.setForeground(new Color(30, 30, 33));
         btnAtualizar.setFont(new Font("Arial", Font.BOLD, 12));
         btnAtualizar.setFocusPainted(false);
         btnAtualizar.setBorderPainted(false);
@@ -69,7 +75,7 @@ public class VitrineView extends JFrame {
         btnVoltar = new JButton("Voltar");
         btnVoltar.setPreferredSize(new Dimension(120, 35));
         btnVoltar.setBackground(Color.WHITE);
-        btnVoltar.setForeground(new Color(102, 126, 234));
+        btnVoltar.setForeground(new Color(30, 30, 33));
         btnVoltar.setFont(new Font("Arial", Font.BOLD, 12));
         btnVoltar.setFocusPainted(false);
         btnVoltar.setBorderPainted(false);
@@ -99,22 +105,15 @@ public class VitrineView extends JFrame {
     }
 
     private void configurarEventos() {
-        btnVoltar.addActionListener(e -> voltarParaLista());
+        btnVoltar.addActionListener(e -> {
+             new TelaInicialView(usuarioLogado).setVisible(true);
+             this.dispose();
+        });
         btnAtualizar.addActionListener(e -> {
             carregarPecas();
             JOptionPane.showMessageDialog(this, "Vitrine atualizada!", "Info", JOptionPane.INFORMATION_MESSAGE);
         });
         btnCarrinho.addActionListener(e -> abrirCarrinho());
-    }
-
-    private ImageIcon base64ParaImageIcon(String base64) {
-    try {
-        byte[] bytes = Base64.getDecoder().decode(base64);
-        return new ImageIcon(bytes);
-    } catch (Exception e) {
-        e.printStackTrace();
-        return null;
-    }
     }
 
     private void carregarPecas() {
@@ -167,32 +166,28 @@ public class VitrineView extends JFrame {
         JLabel lblImagem = new JLabel();
         lblImagem.setHorizontalAlignment(SwingConstants.CENTER);
 
-        if (peca.getImagemBase64() != null && !peca.getImagemBase64().isEmpty()) {
-        try {
-        ImageIcon icon = base64ParaImageIcon(peca.getImagemBase64());
-
-        if (icon != null) {
-            // Redimensiona
-            Image img = icon.getImage().getScaledInstance(300, 240, Image.SCALE_SMOOTH);
-            lblImagem.setIcon(new ImageIcon(img));
+        if (peca.getCaminhoImagem() != null && !peca.getCaminhoImagem().isEmpty()) {
+            try {
+                File imgFile = new File(peca.getCaminhoImagem());
+                if (imgFile.exists()) {
+                    BufferedImage img = ImageIO.read(imgFile);
+                    Image scaledImg = img.getScaledInstance(300, 240, Image.SCALE_SMOOTH);
+                    lblImagem.setIcon(new ImageIcon(scaledImg));
+                } else {
+                    lblImagem.setText("Imagem não encontrada");
+                    lblImagem.setFont(new Font("Arial", Font.PLAIN, 14));
+                    lblImagem.setForeground(Color.GRAY);
+                }
+            } catch (Exception e) {
+                lblImagem.setText("Erro ao carregar imagem");
+                lblImagem.setFont(new Font("Arial", Font.PLAIN, 14));
+                lblImagem.setForeground(Color.GRAY);
+            }
         } else {
-            lblImagem.setText("Erro ao carregar imagem");
+            lblImagem.setText("Sem imagem");
             lblImagem.setFont(new Font("Arial", Font.PLAIN, 14));
             lblImagem.setForeground(Color.GRAY);
         }
-
-    } catch (Exception e) {
-        lblImagem.setText("Erro ao processar imagem");
-        lblImagem.setFont(new Font("Arial", Font.PLAIN, 14));
-        lblImagem.setForeground(Color.GRAY);
-    }
-
-    } else {
-        lblImagem.setText("Sem imagem");
-        lblImagem.setFont(new Font("Arial", Font.PLAIN, 14));
-        lblImagem.setForeground(Color.GRAY);
-    }
-
 
         painelImagem.add(lblImagem, BorderLayout.CENTER);
         card.add(painelImagem, BorderLayout.NORTH);
@@ -281,7 +276,7 @@ public class VitrineView extends JFrame {
         card.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 card.setBorder(BorderFactory.createCompoundBorder(
-                        BorderFactory.createLineBorder(new Color(102, 126, 234), 2),
+                        BorderFactory.createLineBorder(new Color(30, 30, 33), 2),
                         BorderFactory.createEmptyBorder(14, 14, 14, 14)
                 ));
             }
@@ -298,6 +293,14 @@ public class VitrineView extends JFrame {
     }
 
     private void adicionarAoCarrinho(PecaRoupa peca) {
+        if (peca.getEstoque() <= 0) {
+            JOptionPane.showMessageDialog(this,
+                    "Estoque esgotado!",
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
         carrinhoController.adicionarPeca(peca);
         atualizarInfoCarrinho();
         JOptionPane.showMessageDialog(this,
@@ -321,7 +324,7 @@ public class VitrineView extends JFrame {
     }
 
     private void voltarParaLista() {
-        ListaView listaView = new ListaView(controller);
+        ListaView listaView = new ListaView(controller, usuarioLogado);
         listaView.setVisible(true);
         this.dispose();
     }
