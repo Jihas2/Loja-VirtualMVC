@@ -14,16 +14,16 @@ public class VendaController {
     private PecaRoupaDAO pecaDAO = new PecaRoupaDAO();
 
     public boolean finalizarVenda(List<ItemCarrinho> itens, BigDecimal total) {
-        // 1️⃣ Inserir venda
+        // Inserir venda
         int idVenda = vendaDAO.inserirVenda(total);
         if (idVenda <= 0) {
             return false;
         }
 
-        // 2️⃣ Inserir itens
+        // Inserir itens
         vendaDAO.inserirItensVenda(idVenda, itens);
 
-        // 3️⃣ Atualizar estoque
+        // Atualizar estoque
         for (ItemCarrinho item : itens) {
             PecaRoupa peca = item.getPeca();
             int novoEstoque = peca.getEstoque() - item.getQuantidade();

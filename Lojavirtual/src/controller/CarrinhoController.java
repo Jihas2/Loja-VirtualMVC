@@ -60,4 +60,13 @@ public class CarrinhoController {
     public CarrinhoCompras getCarrinho() {
         return carrinho;
     }
+
+    public int getQuantidadeProduto(int pecaId) {
+        for (ItemCarrinho item : carrinho.getItens()) {
+            if (item.getPeca().getId() == pecaId) {
+                return item.getQuantidade();
+            }
+        }
+        return 0;
+    }
 }

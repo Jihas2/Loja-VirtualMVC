@@ -10,7 +10,6 @@ import java.util.List;
 
 public class VendaDAO {
 
-    // 1️⃣ Inserir venda e retornar ID
     public int inserirVenda(BigDecimal valorTotal) {
         String sql = "INSERT INTO Vendas (dataVenda, valorTotal) VALUES (NOW(), ?)";
 
@@ -22,29 +21,31 @@ public class VendaDAO {
 
             ResultSet rs = stmt.getGeneratedKeys();
             if (rs.next()) {
-                return rs.getInt(1); // ID da venda gerado
+                return rs.getInt(1); // retorna idVenda gerado
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return -1; // erro
+        return -1;
     }
 
-    // 2️⃣ Inserir itens da venda
     public void inserirItensVenda(int idVenda, List<ItemCarrinho> itens) {
-        String sql = "INSERT INTO ItensVenda (idVenda, idRoupa, quantidade, valorUnitario) VALUES (?, ?, ?, ?)";
+
+        String sql = "INSERT INTO ItensVenda (id_venda, id_produto, quantidade, preco_unit) " +
+                "VALUES (?, ?, ?, ?)";
 
         try (Connection conn = new Conexao().conectar();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             for (ItemCarrinho item : itens) {
+
                 PecaRoupa peca = item.getPeca();
 
-                stmt.setInt(1, idVenda);
-                stmt.setInt(2, peca.getId());
-                stmt.setInt(3, item.getQuantidade());
-                stmt.setBigDecimal(4, peca.getPreco());
+                stmt.setInt(1, idVenda);                // FK da venda
+                stmt.setInt(2, peca.getId());           // FK do produto
+                stmt.setInt(3, item.getQuantidade());   // quantidade comprada
+                stmt.setBigDecimal(4, peca.getPreco()); // preço unitário no momento da venda
 
                 stmt.addBatch();
             }
@@ -53,6 +54,7 @@ public class VendaDAO {
 
         } catch (SQLException e) {
             e.printStackTrace();
+            throw new RuntimeException("Erro ao inserir itens da venda: " + e.getMessage(), e);
         }
     }
 }

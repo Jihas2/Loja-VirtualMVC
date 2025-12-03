@@ -191,7 +191,7 @@ public class PagamentoView extends JFrame {
     }
 
     private void configurarEventos() {
-        btnConfirmar.addActionListener(e -> finalizarCompra() );
+        btnConfirmar.addActionListener(e -> finalizarCompra());
         btnCancelar.addActionListener(e -> cancelar());
 
         addWindowListener(new java.awt.event.WindowAdapter() {
@@ -200,59 +200,6 @@ public class PagamentoView extends JFrame {
             }
         });
     }
-
-    /*private void confirmarCompra() { //verificar continuidade de uso apos atualizacao com banco
-        String formaPagamento = "";
-        BigDecimal valorTotal = carrinhoController.getValorTotal();
-        double valorFinal = valorTotal.doubleValue();
-
-        if (rbCredito.isSelected()) {
-            formaPagamento = "Cartão de Crédito";
-        } else if (rbDebito.isSelected()) {
-            formaPagamento = "Cartão de Débito";
-            valorFinal = valorFinal * 0.95;
-        } else if (rbPix.isSelected()) {
-            formaPagamento = "PIX";
-            valorFinal = valorFinal * 0.90;
-        }
-
-        List<ItemCarrinho> itens = carrinhoController.getItens();
-        for (ItemCarrinho item : itens) {
-            pecaController.removerPeca(item.getPeca().getId());
-        }
-
-        StringBuilder mensagem = new StringBuilder();
-        mensagem.append("Compra Confirmada com Sucesso!\n\n");
-        mensagem.append("Itens Comprados:\n");
-
-        for (ItemCarrinho item : itens) {
-            mensagem.append(String.format("- %dx %s\n", item.getQuantidade(), item.getPeca().getNome()));
-        }
-
-        for (ItemCarrinho item : carrinhoController.getItens()) {
-            PecaRoupa peca = item.getPeca();
-
-            int novoEstoque = peca.getEstoque() - item.getQuantidade();
-            peca.setEstoque(novoEstoque);
-
-            new PecaRoupaDAO().atualizarEstoque(peca.getId(), novoEstoque);
-        }
-
-
-        mensagem.append(String.format("\nTotal de Itens: %d\n", carrinhoController.getQuantidadeTotal()));
-        mensagem.append(String.format("Forma de Pagamento: %s\n", formaPagamento));
-        mensagem.append(String.format("Valor Final: R$ %.2f\n\n", valorFinal));
-        mensagem.append("Obrigado pela preferência!");
-
-        JOptionPane.showMessageDialog(this,
-                mensagem.toString(),
-                "Compra Realizada",
-                JOptionPane.INFORMATION_MESSAGE);
-
-        carrinhoController.limparCarrinho();
-
-        voltarVitrine();
-    } // << verificar continuidade de uso /* */
 
     private void finalizarCompra() {
         BigDecimal total = carrinhoController.getValorTotal();
@@ -263,15 +210,29 @@ public class PagamentoView extends JFrame {
         boolean sucesso = vendaController.finalizarVenda(itens, total);
 
         if (sucesso) {
-            carrinhoController.limparCarrinho();   // 4️⃣ limpar carrinho
+            for (ItemCarrinho item : itens) {
+                PecaRoupa peca = item.getPeca();
+                int novoEstoque = peca.getEstoque() - item.getQuantidade();
+                peca.setEstoque(novoEstoque);
+                new PecaRoupaDAO().atualizarEstoque(peca.getId(), novoEstoque);
+            }
+
+            carrinhoController.limparCarrinho();
 
             JOptionPane.showMessageDialog(this,
                     "Compra realizada com sucesso!\nObrigado pela preferência!",
                     "Sucesso",
                     JOptionPane.INFORMATION_MESSAGE);
 
+            // sistema continua rodando
+            vitrineView.atualizarVitrine();
+            vitrineView.setVisible(true);
+
+            if (carrinhoView != null) {
+                carrinhoView.dispose();
+            }
+
             this.dispose();
-            //implementar voltar tela incial
         } else {
             JOptionPane.showMessageDialog(this,
                     "Erro ao finalizar compra. Tente novamente.",
@@ -279,7 +240,6 @@ public class PagamentoView extends JFrame {
                     JOptionPane.ERROR_MESSAGE);
         }
     }
-
 
     private void cancelar() {
         int confirmacao = JOptionPane.showConfirmDialog(this,

@@ -106,8 +106,8 @@ public class VitrineView extends JFrame {
 
     private void configurarEventos() {
         btnVoltar.addActionListener(e -> {
-             new TelaInicialView(usuarioLogado).setVisible(true);
-             this.dispose();
+            new TelaInicialView(usuarioLogado).setVisible(true);
+            this.dispose();
         });
         btnAtualizar.addActionListener(e -> {
             carregarPecas();
@@ -235,6 +235,14 @@ public class VitrineView extends JFrame {
             painelInfo.add(Box.createRigidArea(new Dimension(0, 8)));
         }
 
+        JLabel lblEstoque = new JLabel("Estoque: " + peca.getEstoque());
+        lblEstoque.setFont(new Font("Arial", Font.BOLD, 14));
+        lblEstoque.setForeground(new Color(80, 80, 80));
+        lblEstoque.setAlignmentX(Component.LEFT_ALIGNMENT);
+        painelInfo.add(lblEstoque);
+
+        painelInfo.add(Box.createRigidArea(new Dimension(0, 8)));
+
         JPanel painelPreco = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         painelPreco.setBackground(Color.WHITE);
         painelPreco.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -258,14 +266,24 @@ public class VitrineView extends JFrame {
         btnAdicionarCarrinho.setBorderPainted(false);
         btnAdicionarCarrinho.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
+        if (peca.getEstoque() <= 0) {
+            btnAdicionarCarrinho.setEnabled(false);
+            btnAdicionarCarrinho.setText("ESGOTADO");
+            btnAdicionarCarrinho.setBackground(new Color(150, 150, 150));
+        }
+
         btnAdicionarCarrinho.addActionListener(e -> adicionarAoCarrinho(peca));
 
         btnAdicionarCarrinho.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
-                btnAdicionarCarrinho.setBackground(new Color(67, 160, 71));
+                if (btnAdicionarCarrinho.isEnabled()) {
+                    btnAdicionarCarrinho.setBackground(new Color(67, 160, 71));
+                }
             }
             public void mouseExited(java.awt.event.MouseEvent evt) {
-                btnAdicionarCarrinho.setBackground(new Color(76, 175, 80));
+                if (btnAdicionarCarrinho.isEnabled()) {
+                    btnAdicionarCarrinho.setBackground(new Color(76, 175, 80));
+                }
             }
         });
 
@@ -293,6 +311,16 @@ public class VitrineView extends JFrame {
     }
 
     private void adicionarAoCarrinho(PecaRoupa peca) {
+        int quantidadeAtual = carrinhoController.getQuantidadeProduto(peca.getId());
+
+        if (quantidadeAtual >= peca.getEstoque()) {
+            JOptionPane.showMessageDialog(this,
+                    "Você já adicionou o máximo disponível no estoque!",
+                    "Estoque insuficiente",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         if (peca.getEstoque() <= 0) {
             JOptionPane.showMessageDialog(this,
                     "Estoque esgotado!",
@@ -300,7 +328,7 @@ public class VitrineView extends JFrame {
                     JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
+
         carrinhoController.adicionarPeca(peca);
         atualizarInfoCarrinho();
         JOptionPane.showMessageDialog(this,

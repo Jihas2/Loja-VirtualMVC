@@ -5,6 +5,8 @@ import controller.PecaRoupaController;
 import model.ItemCarrinho;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.util.List;
 
@@ -29,7 +31,7 @@ public class CarrinhoView extends JFrame {
 
     private void inicializarComponentes() {
         setTitle("Carrinho de Compras");
-        setSize(900, 600);
+        setSize(1100, 600);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(10, 10));
@@ -44,21 +46,25 @@ public class CarrinhoView extends JFrame {
         lblTitulo.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
         painelPrincipal.add(lblTitulo, BorderLayout.NORTH);
 
-        String[] colunas = {"Produto", "Tipo", "Tamanho", "Preço Unit.", "Qtd", "Subtotal", "Ações"};
+        String[] colunas = {"Produto", "Tipo", "Tamanho", "Preço Unit.", "Qtd", "Estoque", "Subtotal", "Ações"};
         modeloTabela = new DefaultTableModel(colunas, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 6;
+                return column == 4 || column == 7; // Qtd e Ações são editáveis
             }
         };
 
         tabela = new JTable(modeloTabela);
         tabela.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        tabela.setRowHeight(40);
+        tabela.setRowHeight(45);
         tabela.getTableHeader().setFont(new Font("Arial", Font.BOLD, 13));
         tabela.getTableHeader().setBackground(new Color(102, 126, 234));
         tabela.getTableHeader().setForeground(Color.WHITE);
         tabela.setFont(new Font("Arial", Font.PLAIN, 12));
+
+        // Configurar editor e renderizador para a coluna de Quantidade
+        tabela.getColumn("Qtd").setCellRenderer(new QuantidadeRenderer());
+        tabela.getColumn("Qtd").setCellEditor(new QuantidadeEditor());
 
         tabela.getColumn("Ações").setCellRenderer(new ButtonRenderer());
         tabela.getColumn("Ações").setCellEditor(new ButtonEditor(new JCheckBox()));
@@ -150,6 +156,7 @@ public class CarrinhoView extends JFrame {
                     item.getPeca().getTamanho(),
                     String.format("R$ %.2f", item.getPeca().getPreco()),
                     item.getQuantidade(),
+                    item.getPeca().getEstoque() + " un.",
                     String.format("R$ %.2f", item.getSubtotal()),
                     "Ações"
             };
@@ -179,12 +186,45 @@ public class CarrinhoView extends JFrame {
         }
     }
 
+    private boolean validarEstoque() {
+        List<ItemCarrinho> itens = carrinhoController.getItens();
+        StringBuilder itensExcedentes = new StringBuilder();
+        boolean estoqueValido = true;
+
+        for (ItemCarrinho item : itens) {
+            if (item.getQuantidade() > item.getPeca().getEstoque()) {
+                estoqueValido = false;
+                itensExcedentes.append("• ").append(item.getPeca().getNome())
+                        .append(": Quantidade no carrinho (").append(item.getQuantidade())
+                        .append(") excede o estoque (").append(item.getPeca().getEstoque())
+                        .append(")\n");
+            }
+        }
+
+        if (!estoqueValido) {
+            JOptionPane.showMessageDialog(this,
+                    "Não é possível finalizar a compra!\n\n" +
+                            "Os seguintes itens excedem o estoque disponível:\n\n" +
+                            itensExcedentes.toString() +
+                            "\nPor favor, ajuste as quantidades antes de finalizar.",
+                    "Estoque Insuficiente",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+
+        return estoqueValido;
+    }
+
     private void finalizarCompra() {
         if (carrinhoController.isEmpty()) {
             JOptionPane.showMessageDialog(this,
                     "Seu carrinho está vazio!",
                     "Aviso",
                     JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // Validar estoque antes de prosseguir
+        if (!validarEstoque()) {
             return;
         }
 
@@ -214,6 +254,18 @@ public class CarrinhoView extends JFrame {
 
     private void incrementarItem(int row) {
         ItemCarrinho item = carrinhoController.getItens().get(row);
+        int estoque = item.getPeca().getEstoque();
+
+        // NÃO permite incrementar se já atingiu o estoque
+        if (item.getQuantidade() >= estoque) {
+            JOptionPane.showMessageDialog(this,
+                    "Quantidade máxima atingida!\nEstoque disponível: " + estoque + " unidades",
+                    "Estoque Insuficiente",
+                    JOptionPane.WARNING_MESSAGE);
+            return; // Não faz nada, apenas retorna
+        }
+
+        // Só incrementa se ainda tiver estoque disponível
         carrinhoController.incrementarQuantidade(item.getPeca().getId());
         carregarItens();
     }
@@ -231,7 +283,129 @@ public class CarrinhoView extends JFrame {
         }
     }
 
-    class ButtonRenderer extends JPanel implements javax.swing.table.TableCellRenderer {
+    private void atualizarQuantidade(int row, int novaQuantidade) {
+        ItemCarrinho item = carrinhoController.getItens().get(row);
+        int estoque = item.getPeca().getEstoque();
+
+        // Validação: não permite quantidade maior que o estoque
+        if (novaQuantidade > estoque) {
+            JOptionPane.showMessageDialog(this,
+                    "Quantidade solicitada excede o estoque disponível!\n" +
+                            "Estoque disponível: " + estoque + " unidades\n" +
+                            "Você tentou adicionar: " + novaQuantidade + " unidades",
+                    "Estoque Insuficiente",
+                    JOptionPane.ERROR_MESSAGE);
+
+            // Ajusta automaticamente para 1
+            item.setQuantidade(1);
+            carregarItens();
+            return;
+        }
+
+        // Validação: quantidade mínima é 1
+        if (novaQuantidade < 1) {
+            JOptionPane.showMessageDialog(this,
+                    "Quantidade mínima é 1. Use o botão remover para excluir o item.",
+                    "Aviso",
+                    JOptionPane.INFORMATION_MESSAGE);
+
+            // Ajusta automaticamente para 1
+            item.setQuantidade(1);
+            carregarItens();
+            return;
+        }
+
+        // Se passou nas validações, atualiza a quantidade
+        item.setQuantidade(novaQuantidade);
+        carregarItens();
+    }
+
+    // Renderizador para a coluna de Quantidade com visual editável
+    class QuantidadeRenderer extends JTextField implements TableCellRenderer {
+        public QuantidadeRenderer() {
+            setHorizontalAlignment(JTextField.CENTER);
+            setFont(new Font("Arial", Font.BOLD, 14));
+            setBackground(new Color(255, 255, 230)); // Amarelo claro
+            setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(102, 126, 234), 2),
+                    BorderFactory.createEmptyBorder(2, 5, 2, 5)
+            ));
+            setEditable(false);
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                                                       boolean isSelected, boolean hasFocus, int row, int column) {
+            setText(value != null ? "✏️ " + value.toString() : "");
+
+            if (isSelected) {
+                setBackground(new Color(255, 255, 200));
+            } else {
+                setBackground(new Color(255, 255, 230));
+            }
+
+            return this;
+        }
+    }
+
+    // Editor para a coluna de Quantidade
+    class QuantidadeEditor extends DefaultCellEditor {
+        private JTextField textField;
+        private int currentRow;
+
+        public QuantidadeEditor() {
+            super(new JTextField());
+
+            textField = (JTextField) getComponent();
+            textField.setHorizontalAlignment(JTextField.CENTER);
+            textField.setFont(new Font("Arial", Font.BOLD, 14));
+            textField.setBackground(new Color(255, 255, 200)); // Amarelo forte para edição
+            textField.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(76, 175, 80), 3), // Verde quando editando
+                    BorderFactory.createEmptyBorder(2, 5, 2, 5)
+            ));
+            textField.setCursor(new Cursor(Cursor.TEXT_CURSOR));
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value,
+                                                     boolean isSelected, int row, int column) {
+            currentRow = row;
+            textField.setText(value != null ? value.toString() : "");
+            textField.selectAll(); // Seleciona todo o texto para facilitar a edição
+            return textField;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            return textField.getText();
+        }
+
+        @Override
+        public boolean stopCellEditing() {
+            String text = textField.getText().trim();
+            try {
+                int novaQuantidade = Integer.parseInt(text);
+                atualizarQuantidade(currentRow, novaQuantidade);
+                return super.stopCellEditing();
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(CarrinhoView.this,
+                        "Por favor, digite um número válido!",
+                        "Erro",
+                        JOptionPane.ERROR_MESSAGE);
+
+                // Ajusta para 1 em caso de erro
+                ItemCarrinho item = carrinhoController.getItens().get(currentRow);
+                item.setQuantidade(1);
+                carregarItens();
+
+                return false;
+            }
+        }
+    }
+
+    class ButtonRenderer extends JPanel implements TableCellRenderer {
         private JButton btnMais;
         private JButton btnMenos;
         private JButton btnRemover;

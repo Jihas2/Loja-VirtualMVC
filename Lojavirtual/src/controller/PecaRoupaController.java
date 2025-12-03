@@ -15,8 +15,8 @@ public class PecaRoupaController {
     }
 
     public void adicionarPeca(String nome, String tipo, String tamanho,
-                                 String cor, BigDecimal preco,
-                                 String descricao, String caminhoImagem, int estoque) {
+                              String cor, BigDecimal preco,
+                              String descricao, String caminhoImagem, int estoque) {
 
         PecaRoupa peca = new PecaRoupa(nome, tipo, tamanho, cor,
                 preco, descricao, caminhoImagem, estoque);
