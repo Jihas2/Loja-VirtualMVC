@@ -164,6 +164,10 @@ public class CarrinhoView extends JFrame {
         }
 
         atualizarTotal();
+
+        // Força a atualização visual da tabela
+        tabela.repaint();
+        tabela.revalidate();
     }
 
     private void atualizarTotal() {
@@ -256,7 +260,7 @@ public class CarrinhoView extends JFrame {
         ItemCarrinho item = carrinhoController.getItens().get(row);
         int estoque = item.getPeca().getEstoque();
 
-        // NÃO permite incrementar se já atingiu o estoque
+        // Não permite incrementar se já atingiu o estoque
         if (item.getQuantidade() >= estoque) {
             JOptionPane.showMessageDialog(this,
                     "Quantidade máxima atingida!\nEstoque disponível: " + estoque + " unidades",
@@ -287,30 +291,36 @@ public class CarrinhoView extends JFrame {
         ItemCarrinho item = carrinhoController.getItens().get(row);
         int estoque = item.getPeca().getEstoque();
 
-        // Validação: não permite quantidade maior que o estoque
+        // Não permite quantidade maior que o estoque
         if (novaQuantidade > estoque) {
+            // Ajusta a quantidade
+            item.setQuantidade(estoque);
+
+            // Mostra a mensagem
             JOptionPane.showMessageDialog(this,
                     "Quantidade solicitada excede o estoque disponível!\n" +
                             "Estoque disponível: " + estoque + " unidades\n" +
-                            "Você tentou adicionar: " + novaQuantidade + " unidades",
+                            "Você tentou adicionar: " + novaQuantidade + " unidades\n\n" +
+                            "A quantidade foi ajustada para o máximo disponível: " + estoque,
                     "Estoque Insuficiente",
                     JOptionPane.ERROR_MESSAGE);
 
-            // Ajusta automaticamente para 1
-            item.setQuantidade(1);
+            // Recarrega a tabela para mostrar o novo valor
             carregarItens();
             return;
         }
 
-        // Validação: quantidade mínima é 1
+        // Validação quantidade mínima é 1
         if (novaQuantidade < 1) {
+            // Primeiro ajusta
+            item.setQuantidade(1);
+
             JOptionPane.showMessageDialog(this,
                     "Quantidade mínima é 1. Use o botão remover para excluir o item.",
                     "Aviso",
                     JOptionPane.INFORMATION_MESSAGE);
 
-            // Ajusta automaticamente para 1
-            item.setQuantidade(1);
+            // FINALMENTE recarrega
             carregarItens();
             return;
         }
@@ -337,7 +347,7 @@ public class CarrinhoView extends JFrame {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value,
                                                        boolean isSelected, boolean hasFocus, int row, int column) {
-            setText(value != null ? "✏️ " + value.toString() : "");
+            setText(value != null ? "" + value.toString() : "");
 
             if (isSelected) {
                 setBackground(new Color(255, 255, 200));
@@ -373,7 +383,7 @@ public class CarrinhoView extends JFrame {
                                                      boolean isSelected, int row, int column) {
             currentRow = row;
             textField.setText(value != null ? value.toString() : "");
-            textField.selectAll(); // Seleciona todo o texto para facilitar a edição
+            textField.selectAll();
             return textField;
         }
 
@@ -390,16 +400,16 @@ public class CarrinhoView extends JFrame {
                 atualizarQuantidade(currentRow, novaQuantidade);
                 return super.stopCellEditing();
             } catch (NumberFormatException e) {
+                ItemCarrinho item = carrinhoController.getItens().get(currentRow);
+                item.setQuantidade(1);
+
                 JOptionPane.showMessageDialog(CarrinhoView.this,
-                        "Por favor, digite um número válido!",
+                        "Por favor, digite um número válido!\n\n" +
+                                "A quantidade foi ajustada para 1.",
                         "Erro",
                         JOptionPane.ERROR_MESSAGE);
 
-                // Ajusta para 1 em caso de erro
-                ItemCarrinho item = carrinhoController.getItens().get(currentRow);
-                item.setQuantidade(1);
                 carregarItens();
-
                 return false;
             }
         }
