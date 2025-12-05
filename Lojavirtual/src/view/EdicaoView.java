@@ -262,29 +262,56 @@ public class EdicaoView extends JFrame {
             String tipo = (String) cmbTipo.getSelectedItem();
             String tamanho = (String) cmbTamanho.getSelectedItem();
             String cor = txtCor.getText().trim();
-            String precoStr = txtPreco.getText().trim();
-            BigDecimal preco = new BigDecimal(precoStr); //converte em decimal
+            String precoStr = txtPreco.getText().trim().replace(",", ".");
             String descricao = txtDescricao.getText().trim();
             String caminhoImagem = txtCaminhoImagem.getText().trim();
-            int estoque = Integer.parseInt(txtEstoque.getText().trim());
+            String estoqueStr = txtEstoque.getText().trim();
 
+            // Verificações de valores validos.
+            if (nome.isEmpty()) {
+                throw new IllegalArgumentException("O nome da peça não pode estar vazio.");
+            }
+            // Tipo
             if (tipo.equals("Selecione")) {
-                tipo = "";
+                throw new IllegalArgumentException("Selecione um tipo válido.");
             }
+            // Tamanho
             if (tamanho.equals("Selecione")) {
-                tamanho = "";
+                throw new IllegalArgumentException("Selecione um tamanho válido.");
+            }
+            // Preço
+            BigDecimal preco;
+            try {
+                preco = new BigDecimal(precoStr);
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Preço inválido. Use apenas números. Ex: 49.90");
+            }
+            if (preco.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("O preço deve ser maior que zero.");
+            }
+            // Estoque
+            int estoque;
+            try {
+                estoque = Integer.parseInt(estoqueStr);
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("O estoque deve ser um número inteiro.");
             }
 
+            if (estoque < 0) {
+                throw new IllegalArgumentException("O estoque não pode ser negativo.");
+            }
+
+            //se passou por todas verificações de valores válidos, atualiza peça
             controller.atualizarPeca(pecaEditando.getId(), nome, tipo, tamanho, cor, preco, descricao, caminhoImagem, estoque);
 
-            JOptionPane.showMessageDialog(this,
-                    "Peça atualizada com sucesso!",
-                    "Sucesso",
-                    JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this,
+                        "Peça atualizada com sucesso!",
+                        "Sucesso",
+                        JOptionPane.INFORMATION_MESSAGE);
 
-            listaView.atualizarLista();
-            listaView.setVisible(true);
-            this.dispose();
+                listaView.atualizarLista();
+                listaView.setVisible(true);
+                this.dispose();
 
         } catch (IllegalArgumentException ex) {
             JOptionPane.showMessageDialog(this,

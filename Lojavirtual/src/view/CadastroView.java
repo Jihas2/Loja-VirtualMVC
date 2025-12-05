@@ -252,40 +252,73 @@ public class CadastroView extends JFrame {
     }
 
     private void salvarPeca() {
-    try {
-        String nome = txtNome.getText().trim();
-        String tipo = (String) cmbTipo.getSelectedItem();
-        String tamanho = (String) cmbTamanho.getSelectedItem();
-        String cor = txtCor.getText().trim();
-        String precoStr = txtPreco.getText().trim();
-        BigDecimal preco = new BigDecimal(precoStr);
-        String descricao = txtDescricao.getText().trim();
-        String caminhoImagem = txtCaminhoImagem.getText().trim();
-        int estoque = Integer.parseInt(txtEstoque.getText().trim());
+        try {
+            String nome = txtNome.getText().trim();
+            String tipo = (String) cmbTipo.getSelectedItem();
+            String tamanho = (String) cmbTamanho.getSelectedItem();
+            String cor = txtCor.getText().trim();
+            String precoStr = txtPreco.getText().trim().replace(",", ".");
+            String descricao = txtDescricao.getText().trim();
+            String caminhoImagem = txtCaminhoImagem.getText().trim();
+            String estoqueStr = txtEstoque.getText().trim();
 
-        if (tipo.equals("Selecione")) {
-            tipo = "";
+            // Verificações de valores validos.
+            if (nome.isEmpty()) {
+                throw new IllegalArgumentException("O nome da peça não pode estar vazio.");
+            }
+            // Tipo
+            if (tipo.equals("Selecione")) {
+                throw new IllegalArgumentException("Selecione um tipo válido.");
+            }
+            // Tamanho
+            if (tamanho.equals("Selecione")) {
+                //throw new IllegalArgumentException("Selecione um tamanho válido.");
+                tamanho = "";
+            }
+            // Preço
+            BigDecimal preco;
+            try {
+                preco = new BigDecimal(precoStr);
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Preço inválido. Use apenas números. Ex: 49.90");
+            }
+            if (preco.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("O preço deve ser maior que zero.");
+            }
+            // Estoque
+            int estoque;
+            try {
+                estoque = Integer.parseInt(estoqueStr);
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("O estoque deve ser um número inteiro.");
+            }
+
+            if (estoque < 0) {
+                throw new IllegalArgumentException("O estoque não pode ser negativo.");
+            }
+
+            //se passou por todas verificações, joga no controller
+            controller.adicionarPeca(nome, tipo, tamanho, cor, preco, descricao, caminhoImagem, estoque);
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Peça cadastrada com sucesso!",
+                    "Sucesso",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+
+            limparCampos();
+
+
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    ex.getMessage(),
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE
+            );
         }
-        if (tamanho.equals("Selecione")) {
-            tamanho = "";
-        }
-
-        controller.adicionarPeca(nome, tipo, tamanho, cor, preco, descricao, caminhoImagem, estoque);
-
-        JOptionPane.showMessageDialog(this,
-                "Peça cadastrada com sucesso!",
-                "Sucesso",
-                JOptionPane.INFORMATION_MESSAGE);
-
-        limparCampos();
-
-    } catch (IllegalArgumentException ex) {
-        JOptionPane.showMessageDialog(this,
-                ex.getMessage(),
-                "Erro",
-                JOptionPane.ERROR_MESSAGE);
     }
-}
 
 
     private void limparCampos() {
