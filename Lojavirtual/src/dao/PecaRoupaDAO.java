@@ -11,13 +11,14 @@ import database.Conexao;
 import model.PecaRoupa;
 
 public class PecaRoupaDAO {
-     // CREATE
+
+    // CREATE
     public boolean adicionar(PecaRoupa peca) {
-        String sql = "INSERT INTO Roupas (nome, tipo, tamanho, cor, preco, descricao, caminhoImagem, estoque) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+        String sql = "INSERT INTO Roupas (nome, tipo, tamanho, cor, preco, descricao, imagemBase64, estoque) "
+                   + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = new Conexao().conectar();
-
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, peca.getNome());
@@ -26,9 +27,9 @@ public class PecaRoupaDAO {
             stmt.setString(4, peca.getCor());
             stmt.setBigDecimal(5, peca.getPreco());
             stmt.setString(6, peca.getDescricao());
-            stmt.setString(7, peca.getCaminhoImagem());
+            stmt.setString(7, peca.getImagemBase64()); // <-- BASE64 AQUI
             stmt.setInt(8, peca.getEstoque());
-            
+
             stmt.executeUpdate();
             return true;
 
@@ -44,11 +45,11 @@ public class PecaRoupaDAO {
         String sql = "SELECT * FROM Roupas";
 
         try (Connection conn = new Conexao().conectar();
-
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
+
                 PecaRoupa p = new PecaRoupa(
                         rs.getInt("idRoupa"),
                         rs.getString("nome"),
@@ -57,9 +58,10 @@ public class PecaRoupaDAO {
                         rs.getString("cor"),
                         rs.getBigDecimal("preco"),
                         rs.getString("descricao"),
-                        rs.getString("caminhoImagem"),
+                        rs.getString("imagemBase64"), // <-- BASE64 AQUI
                         rs.getInt("estoque")
                 );
+
                 lista.add(p);
             }
         } catch (Exception e) {
@@ -71,16 +73,17 @@ public class PecaRoupaDAO {
 
     // READ - buscar por ID
     public PecaRoupa buscarPorId(int id) {
+
         String sql = "SELECT * FROM Roupas WHERE idRoupa = ?";
 
         try (Connection conn = new Conexao().conectar();
-
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, id);
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
+
                 return new PecaRoupa(
                         rs.getInt("idRoupa"),
                         rs.getString("nome"),
@@ -89,11 +92,11 @@ public class PecaRoupaDAO {
                         rs.getString("cor"),
                         rs.getBigDecimal("preco"),
                         rs.getString("descricao"),
-                        rs.getString("caminhoImagem"),
+                        rs.getString("imagemBase64"), // <-- BASE64 AQUI
                         rs.getInt("estoque")
-
                 );
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -103,11 +106,12 @@ public class PecaRoupaDAO {
 
     // UPDATE
     public boolean atualizar(PecaRoupa peca) {
-        String sql = "UPDATE Roupas SET nome=?, tipo=?, tamanho=?, cor=?, preco=?, descricao=?, estoque=?, caminhoImagem=? "
-                + "WHERE idRoupa=?";
+
+        String sql = "UPDATE Roupas SET nome=?, tipo=?, tamanho=?, cor=?, preco=?, "
+                   + "descricao=?, imagemBase64=?, estoque=? WHERE idRoupa=?";
 
         try (Connection conn = new Conexao().conectar();
-            PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, peca.getNome());
             stmt.setString(2, peca.getTipo());
@@ -115,9 +119,9 @@ public class PecaRoupaDAO {
             stmt.setString(4, peca.getCor());
             stmt.setBigDecimal(5, peca.getPreco());
             stmt.setString(6, peca.getDescricao());
-            stmt.setInt(7, peca.getEstoque());           // CORRETO
-            stmt.setString(8, peca.getCaminhoImagem());  // CORRETO
-            stmt.setInt(9, peca.getId());                // WHERE
+            stmt.setString(7, peca.getImagemBase64()); // <-- BASE64
+            stmt.setInt(8, peca.getEstoque());
+            stmt.setInt(9, peca.getId());
 
             stmt.executeUpdate();
             return true;
@@ -128,13 +132,12 @@ public class PecaRoupaDAO {
         }
     }
 
-
     // DELETE
     public boolean remover(int id) {
+
         String sql = "DELETE FROM Roupas WHERE idRoupa = ?";
 
         try (Connection conn = new Conexao().conectar();
-
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, id);
@@ -147,11 +150,13 @@ public class PecaRoupaDAO {
         }
     }
 
+    // Atualizar estoque
     public void atualizarEstoque(int id, int novoEstoque) {
+
         String sql = "UPDATE Roupas SET estoque = ? WHERE idRoupa = ?";
 
         try (Connection conn = new Conexao().conectar();
-            PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, novoEstoque);
             stmt.setInt(2, id);
@@ -161,7 +166,4 @@ public class PecaRoupaDAO {
             e.printStackTrace();
         }
     }
-
-
-
 }

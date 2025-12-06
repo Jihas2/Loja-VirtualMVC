@@ -253,7 +253,7 @@ public class EdicaoView extends JFrame {
         txtCor.setText(pecaEditando.getCor());
         txtPreco.setText(pecaEditando.getPreco().toString());
         txtDescricao.setText(pecaEditando.getDescricao() != null ? pecaEditando.getDescricao() : "");
-        txtCaminhoImagem.setText(pecaEditando.getCaminhoImagem() != null ? pecaEditando.getCaminhoImagem() : "");
+        txtCaminhoImagem.setText(pecaEditando.getImagemBase64() != null ? pecaEditando.getImagemBase64() : "");
     }
 
     private void salvarAlteracoes() {
@@ -265,6 +265,7 @@ public class EdicaoView extends JFrame {
             String precoStr = txtPreco.getText().trim().replace(",", ".");
             String descricao = txtDescricao.getText().trim();
             String caminhoImagem = txtCaminhoImagem.getText().trim();
+            String imagemBase64 = null;
             String estoqueStr = txtEstoque.getText().trim();
 
             // Verificações de valores validos.
@@ -289,6 +290,10 @@ public class EdicaoView extends JFrame {
             if (preco.compareTo(BigDecimal.ZERO) <= 0) {
                 throw new IllegalArgumentException("O preço deve ser maior que zero.");
             }
+            //imagem
+            if (!caminhoImagem.isEmpty()) {
+                imagemBase64 = converterImagemParaBase64(caminhoImagem);
+            }
             // Estoque
             int estoque;
             try {
@@ -302,7 +307,7 @@ public class EdicaoView extends JFrame {
             }
 
             //se passou por todas verificações de valores válidos, atualiza peça
-            controller.atualizarPeca(pecaEditando.getId(), nome, tipo, tamanho, cor, preco, descricao, caminhoImagem, estoque);
+            controller.atualizarPeca(pecaEditando.getId(), nome, tipo, tamanho, cor, preco, descricao, imagemBase64, estoque);
 
                 JOptionPane.showMessageDialog(this,
                         "Peça atualizada com sucesso!",
@@ -318,6 +323,17 @@ public class EdicaoView extends JFrame {
                     ex.getMessage(),
                     "Erro",
                     JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private String converterImagemParaBase64(String caminho) {
+        try {
+            java.nio.file.Path path = java.nio.file.Paths.get(caminho);
+            byte[] bytes = java.nio.file.Files.readAllBytes(path);
+            return java.util.Base64.getEncoder().encodeToString(bytes);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
     }
 

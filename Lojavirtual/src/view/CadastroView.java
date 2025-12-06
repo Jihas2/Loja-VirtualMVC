@@ -251,6 +251,18 @@ public class CadastroView extends JFrame {
         }
     }
 
+    private String converterImagemParaBase64(String caminho) {
+        try {
+            java.nio.file.Path path = java.nio.file.Paths.get(caminho);
+            byte[] bytes = java.nio.file.Files.readAllBytes(path);
+            return java.util.Base64.getEncoder().encodeToString(bytes);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+
     private void salvarPeca() {
         try {
             String nome = txtNome.getText().trim();
@@ -260,6 +272,7 @@ public class CadastroView extends JFrame {
             String precoStr = txtPreco.getText().trim().replace(",", ".");
             String descricao = txtDescricao.getText().trim();
             String caminhoImagem = txtCaminhoImagem.getText().trim();
+            String imagemBase64 = null;
             String estoqueStr = txtEstoque.getText().trim();
 
             // Verificações de valores validos.
@@ -285,6 +298,10 @@ public class CadastroView extends JFrame {
             if (preco.compareTo(BigDecimal.ZERO) <= 0) {
                 throw new IllegalArgumentException("O preço deve ser maior que zero.");
             }
+            //imagem
+            if (!caminhoImagem.isEmpty()) {
+                imagemBase64 = converterImagemParaBase64(caminhoImagem);
+            }
             // Estoque
             int estoque;
             try {
@@ -298,7 +315,7 @@ public class CadastroView extends JFrame {
             }
 
             //se passou por todas verificações, joga no controller
-            controller.adicionarPeca(nome, tipo, tamanho, cor, preco, descricao, caminhoImagem, estoque);
+            controller.adicionarPeca(nome, tipo, tamanho, cor, preco, descricao, imagemBase64, estoque);
 
             JOptionPane.showMessageDialog(
                     this,

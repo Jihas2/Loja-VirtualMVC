@@ -166,23 +166,14 @@ public class VitrineView extends JFrame {
         JLabel lblImagem = new JLabel();
         lblImagem.setHorizontalAlignment(SwingConstants.CENTER);
 
-        if (peca.getCaminhoImagem() != null && !peca.getCaminhoImagem().isEmpty()) {
-            try {
-                File imgFile = new File(peca.getCaminhoImagem());
-                if (imgFile.exists()) {
-                    BufferedImage img = ImageIO.read(imgFile);
-                    Image scaledImg = img.getScaledInstance(300, 240, Image.SCALE_SMOOTH);
-                    lblImagem.setIcon(new ImageIcon(scaledImg));
-                } else {
-                    lblImagem.setText("Imagem não encontrada");
-                    lblImagem.setFont(new Font("Arial", Font.PLAIN, 14));
-                    lblImagem.setForeground(Color.GRAY);
-                }
-            } catch (Exception e) {
-                lblImagem.setText("Erro ao carregar imagem");
-                lblImagem.setFont(new Font("Arial", Font.PLAIN, 14));
-                lblImagem.setForeground(Color.GRAY);
-            }
+        if (peca.getImagemBase64() != null && !peca.getImagemBase64().isEmpty()) {
+        ImageIcon icon = base64ParaImageIcon(peca.getImagemBase64(), 300, 240);
+        if (icon != null) {
+            lblImagem.setIcon(icon);
+        } else {
+            lblImagem.setText("Erro ao carregar imagem");
+            lblImagem.setForeground(Color.GRAY);
+        }
         } else {
             lblImagem.setText("Sem imagem");
             lblImagem.setFont(new Font("Arial", Font.PLAIN, 14));
@@ -266,9 +257,11 @@ public class VitrineView extends JFrame {
         btnAdicionarCarrinho.setBorderPainted(false);
         btnAdicionarCarrinho.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        if (peca.getEstoque() <= 0) {
-            btnAdicionarCarrinho.setEnabled(false);
+        if (peca.getEstoque() <= 0) { //Desabilita funções para não mudar estilização
+            btnAdicionarCarrinho.setCursor(Cursor.getDefaultCursor());
+            btnAdicionarCarrinho.addActionListener(e -> {});
             btnAdicionarCarrinho.setText("ESGOTADO");
+            btnAdicionarCarrinho.setForeground(Color.WHITE);
             btnAdicionarCarrinho.setBackground(new Color(150, 150, 150));
         }
 
@@ -350,6 +343,21 @@ public class VitrineView extends JFrame {
         carrinhoView.setVisible(true);
         this.setVisible(false);
     }
+
+    private ImageIcon base64ParaImageIcon(String base64, int largura, int altura) {
+    try {
+        byte[] bytes = java.util.Base64.getDecoder().decode(base64);
+        BufferedImage img = javax.imageio.ImageIO.read(new java.io.ByteArrayInputStream(bytes));
+
+        Image scaledImg = img.getScaledInstance(largura, altura, Image.SCALE_SMOOTH);
+        return new ImageIcon(scaledImg);
+
+    } catch (Exception e) {
+        System.out.println("Erro ao converter Base64 → Imagem: " + e.getMessage());
+        return null;
+    }
+    }
+
 
     private void voltarParaLista() {
         ListaView listaView = new ListaView(controller, usuarioLogado);

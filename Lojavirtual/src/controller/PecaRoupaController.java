@@ -16,10 +16,10 @@ public class PecaRoupaController {
 
     public void adicionarPeca(String nome, String tipo, String tamanho,
                               String cor, BigDecimal preco,
-                              String descricao, String caminhoImagem, int estoque) {
+                              String descricao, String imagemBase64, int estoque) {
 
         PecaRoupa peca = new PecaRoupa(nome, tipo, tamanho, cor,
-                preco, descricao, caminhoImagem, estoque);
+                preco, descricao, imagemBase64, estoque);
 
         new PecaRoupaDAO().adicionar(peca);
     }
@@ -30,10 +30,10 @@ public class PecaRoupaController {
 
     public boolean atualizarPeca(int id, String nome, String tipo, String tamanho,
                                  String cor, BigDecimal preco,
-                                 String descricao, String caminhoImagem, int estoque) {
+                                 String descricao, String imagemBase64, int estoque) {
 
         PecaRoupa peca = new PecaRoupa(id, nome, tipo, tamanho, cor,
-                preco, descricao, caminhoImagem, estoque);
+                preco, descricao, imagemBase64, estoque);
 
         return dao.atualizar(peca);
     }
